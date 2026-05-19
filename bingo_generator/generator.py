@@ -8,6 +8,39 @@ logger = logging.getLogger(__name__)
 
 OVERREQUEST_MARGIN = 10
 
+SYSTEM_PROMPT = """\
+You are a comedy writer creating viral bingo cards.
+
+Your job: given a topic, a count, and a language — generate that many \
+bingo cell phrases. Each phrase must be a short, funny, absurdly specific \
+observation that people who relate to the topic would instantly recognize.
+
+STYLE RULES:
+- Hyper-specific, not generic. "Rehearsed a phone call for 10 minutes" \
+is good. "Doesn't like calling" is boring.
+- Include absurd exaggerations, irrational behaviors, embarrassing habits.
+- Mix types: thoughts, actions, physical reactions, rationalizations, excuses.
+
+DIVERSITY RULES:
+- Each cell must cover a DIFFERENT aspect. Spread across these categories:
+  * Social interactions (parties, dates, meetings, strangers)
+  * Inner monologue (doubts, overthinking, self-talk)
+  * Physical reactions (sweating, freezing, heart racing)
+  * Daily routines (morning, commute, bedtime, weekends)
+  * Avoidance strategies (excuses, escape plans, hiding)
+  * Relationships (friends, family, romance, coworkers)
+  * Digital life (messaging, social media, doomscrolling)
+  * Irrational fears and embarrassing habits
+- Never express the same idea twice, even with different words.
+  If one cell says "avoids eye contact", no other cell about eye contact.
+- If two cells could describe the same moment, they are too similar.
+
+FORMAT:
+- 2-8 words each.
+- Return ONLY a JSON array of strings. No markdown, no code blocks, no explanation.
+- Example: ["phrase one", "phrase two", "phrase three"]\
+"""
+
 
 def _detect_lang_hint(topic: str) -> str:
     has_cyrillic = any("Ѐ" <= c <= "ӿ" for c in topic)
@@ -47,27 +80,7 @@ def generate_phrases(
 
     request_count = count + OVERREQUEST_MARGIN
 
-    prompt = (
-        f"Create a bingo card about '{topic}' with {request_count} cells.\n\n"
-        f"Each cell is one funny, absurdly specific observation that people "
-        f"who relate to '{topic}' would instantly recognize.\n\n"
-        f"CRITICAL RULES:\n"
-        f"1. DIVERSITY: Each cell must cover a DIFFERENT aspect. Spread across these categories:\n"
-        f"   - Social interactions (parties, dates, meetings, strangers)\n"
-        f"   - Inner monologue (doubts, overthinking, self-talk)\n"
-        f"   - Physical reactions (sweating, freezing, heart racing)\n"
-        f"   - Daily routines (morning, commute, bedtime, weekends)\n"
-        f"   - Avoidance strategies (excuses, escape plans, hiding)\n"
-        f"   - Relationships (friends, family, romance, coworkers)\n"
-        f"   - Digital life (messaging, social media, doomscrolling)\n"
-        f"   - Irrational fears and embarrassing habits\n"
-        f"2. SPECIFICITY: 'Rehearsed a phone call for 10 minutes' is good. "
-        f"'Doesn't like calling' is boring.\n"
-        f"3. NO REPETITION: Never express the same idea twice, even with different words. "
-        f"If one cell says 'avoids eye contact', no other cell about eye contact.\n"
-        f"4. 2-8 words each. Write in {lang_hint}.\n\n"
-        f"Return ONLY a JSON array of strings. No markdown, no explanation."
-    )
+    user_message = f"Topic: {topic}\nCount: {request_count}\nLanguage: {lang_hint}"
 
     logger.debug(
         "Calling Mistral API: model=%s, topic='%s', request=%d, need=%d, lang=%s",
@@ -83,16 +96,8 @@ def generate_phrases(
     response = client.chat.complete(
         model=model,
         messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a comedy writer creating viral bingo cards. "
-                    "Each cell must be a completely unique observation — different situation, "
-                    "different emotion, different context. If two cells could describe the "
-                    "same moment, they are too similar. Always respond with valid JSON only."
-                ),
-            },
-            {"role": "user", "content": prompt},
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_message},
         ],
         temperature=1.0,
     )
