@@ -1,0 +1,18 @@
+# Bingo Generator Configuration
+# Copy this file to bingo.yaml and fill in your values.
+# Alternatively, place config at ~/.config/bingo-generator/config.yaml
+
+# AI provider (currently only "mistral" is supported)
+provider: "mistral"
+
+mistral:
+  # Get your API key at https://console.mistral.ai/
+  api_key: "YOUR_MISTRAL_API_KEY"
+  # Model to use for generating bingo phrases
+  model: "mistral-large-latest"
+
+# Output language: "auto" (detects from input), "en", "ru", etc.
+language: "auto"
+
+# Output image format: "png"
+format: "png"
