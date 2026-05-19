@@ -37,8 +37,9 @@ DIVERSITY RULES:
 
 FORMAT:
 - 2-8 words each.
-- Return ONLY a JSON array of strings. No markdown, no code blocks, no explanation.
-- Example: ["phrase one", "phrase two", "phrase three"]\
+- You MUST respond with a JSON object with a single key "phrases" \
+containing an array of strings.
+- Example: {"phrases": ["phrase one", "phrase two", "phrase three"]}\
 """
 
 
@@ -99,26 +100,31 @@ def generate_phrases(
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_message},
         ],
+        response_format={"type": "json_object"},
         temperature=1.0,
     )
 
     content = response.choices[0].message.content.strip()
-    logger.debug("Mistral raw response (first 300 chars): %s", content[:300])
-
-    # Strip markdown code blocks if present
-    content = re.sub(r"^```(?:json)?\s*\n?", "", content)
-    content = re.sub(r"\n?```\s*$", "", content)
-    content = content.strip()
+    logger.debug("Mistral response (first 300 chars): %s", content[:300])
 
     try:
-        phrases = json.loads(content)
+        data = json.loads(content)
     except json.JSONDecodeError:
         logger.warning("Failed to parse Mistral response as JSON: %s", content[:100])
         raise
 
+    # Accept both {"phrases": [...]} and bare [...]
+    if isinstance(data, dict):
+        phrases = data.get("phrases", data.get("items", []))
+    elif isinstance(data, list):
+        phrases = data
+    else:
+        logger.warning("Unexpected JSON type: %s", type(data).__name__)
+        raise ValueError("Expected a JSON object with 'phrases' array or a bare array")
+
     if not isinstance(phrases, list):
-        logger.warning("Mistral returned non-array type: %s", type(phrases).__name__)
-        raise ValueError("Expected a JSON array of strings")
+        logger.warning("Phrases value is not an array: %s", type(phrases).__name__)
+        raise ValueError("Expected an array of strings")
 
     phrases = [str(p) for p in phrases]
     logger.debug("Mistral returned %d phrases", len(phrases))
@@ -131,12 +137,7 @@ def generate_phrases(
 
     removed = len(phrases) - len(result)
     if removed:
-        logger.warning(
-            "Removed %d duplicates (%d exact, %d near) from %d phrases",
-            removed,
-            len(phrases) - len(set(phrases)),
-            removed - (len(phrases) - len(set(phrases))),
-        )
+        logger.warning("Removed %d duplicates from %d phrases", removed, len(phrases))
 
     result = result[:count]
     logger.debug("Final: %d phrases (requested %d)", len(result), count)
