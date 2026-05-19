@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 
 from mistralai.client import Mistral
 
@@ -57,6 +58,11 @@ def generate_phrases(
 
     content = response.choices[0].message.content.strip()
     logger.debug("Mistral raw response: %s", content[:200])
+
+    # Strip markdown code blocks if present
+    content = re.sub(r"^```(?:json)?\s*\n?", "", content)
+    content = re.sub(r"\n?```\s*$", "", content)
+    content = content.strip()
 
     try:
         phrases = json.loads(content)

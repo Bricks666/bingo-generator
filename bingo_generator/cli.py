@@ -16,6 +16,9 @@ def _setup_logging(level: str) -> None:
         level=getattr(logging, level.upper(), logging.WARNING),
         format="%(levelname)s %(name)s: %(message)s",
     )
+    # Suppress noisy third-party loggers
+    for name in ("httpcore", "httpx", "mistralai"):
+        logging.getLogger(name).setLevel(logging.WARNING)
 
 
 def parse_size(value: str) -> tuple[int, int]:
