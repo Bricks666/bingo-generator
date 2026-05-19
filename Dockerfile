@@ -13,4 +13,6 @@ RUN uv sync --frozen --no-dev
 
 COPY bingo_generator/ bingo_generator/
 
+EXPOSE 80/tcp
+
 ENTRYPOINT ["uv", "run", "bingo-bot"]
