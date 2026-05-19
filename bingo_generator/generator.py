@@ -25,7 +25,8 @@ def generate_phrases(
         lang_hint = _detect_lang_hint(topic)
 
     prompt = (
-        f"Generate exactly {count} short, funny, relatable bingo phrases about '{topic}'. "
+        f"Generate exactly {count} unique, short, funny, relatable bingo phrases about '{topic}'. "
+        f"Each phrase must be different — no duplicates or near-duplicates. "
         f"Each phrase should be 2-8 words. "
         f"Write them in {lang_hint}. "
         f'Return ONLY a JSON array of strings, no other text. Example: ["phrase1", "phrase2"]'
@@ -74,6 +75,18 @@ def generate_phrases(
         logger.warning("Mistral returned non-array type: %s", type(phrases).__name__)
         raise ValueError("Expected a JSON array of strings")
 
-    result = [str(p) for p in phrases[:count]]
-    logger.debug("Parsed %d phrases", len(result))
+    result = []
+    seen = set()
+    for p in phrases:
+        text = str(p)
+        if text not in seen:
+            seen.add(text)
+            result.append(text)
+
+    dupes = len(phrases) - len(result)
+    if dupes:
+        logger.warning("Removed %d duplicate phrases from Mistral response", dupes)
+
+    result = result[:count]
+    logger.debug("Parsed %d unique phrases", len(result))
     return result
