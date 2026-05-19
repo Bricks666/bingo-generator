@@ -11,6 +11,9 @@ DEFAULT_CONFIG = {
         "api_key": "",
         "model": "mistral-large-latest",
     },
+    "telegram": {
+        "bot_token": "",
+    },
     "language": "auto",
     "format": "png",
     "log_level": "WARNING",

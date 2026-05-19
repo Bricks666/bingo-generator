@@ -10,6 +10,7 @@ dependencies = [
     "mistralai>=1.0.0",
     "Pillow>=10.0",
     "PyYAML>=6.0",
+    "python-telegram-bot>=22.0",
 ]
 
 [project.optional-dependencies]
@@ -21,6 +22,7 @@ dev = [
 
 [project.scripts]
 bingo-generator = "bingo_generator.cli:main"
+bingo-bot = "bingo_generator.bot:main"
 
 [build-system]
 requires = ["hatchling"]

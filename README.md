@@ -1,52 +1,43 @@
 # Bingo Generator
 
-CLI tool that generates bingo card images from a word or phrase. Uses Mistral AI to create humorous, relatable phrases and Pillow to render the card.
+Generates bingo card images from a word or phrase. Uses Mistral AI to create humorous, relatable phrases and Pillow to render the card.
+
+Available as a **CLI tool** and a **Telegram bot**.
 
 ## Setup
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
+uv sync --extra dev
 ```
 
 ## Configuration
 
-Copy the example config and add your Mistral API key:
+Copy the example config and add your API keys:
 
 ```bash
 cp bingo.example.yaml bingo.yaml
 ```
 
-Edit `bingo.yaml` and set your API key:
+Edit `bingo.yaml`:
 
 ```yaml
 mistral:
-  api_key: "your-api-key-here"
+  api_key: "your-mistral-api-key"
+
+telegram:
+  bot_token: "your-telegram-bot-token"  # only needed for the bot
 ```
 
-You can also set the key via environment variable:
+You can also use environment variables: `MISTRAL_API_KEY`, `BINGO_TELEGRAM_TOKEN`.
+
+Config is loaded with precedence: `./bingo.yaml` > `~/.config/bingo-generator/config.yaml` > defaults.
+
+## CLI Usage
 
 ```bash
-export MISTRAL_API_KEY="your-api-key-here"
-```
-
-Config is loaded with precedence: CLI flags > `./bingo.yaml` > `~/.config/bingo-generator/config.yaml` > defaults.
-
-## Usage
-
-```bash
-# Basic usage (5x5 grid, minimal style)
-bingo-generator "introvert"
-
-# Custom grid size (columns x rows)
-bingo-generator "геймер" --size 4x5
-
-# Custom output file
-bingo-generator "coffee lover" -o my_card.png
-
-# Custom style
-bingo-generator "developer" --style pastel
+uv run bingo-generator "introvert"
+uv run bingo-generator "геймер" --size 4x5
+uv run bingo-generator "coffee lover" -o my_card.png
 ```
 
 ### Options
@@ -66,17 +57,36 @@ Language is auto-detected from the input. Cyrillic input produces Russian phrase
 language: "ru"  # or "en", "auto"
 ```
 
-## Examples
+## Telegram Bot
 
-Input phrases and topics can be in any language. The generator adapts automatically:
+```bash
+uv run bingo-bot
+```
 
-| Input | Output |
-|-------|--------|
-| `bingo-generator "социофоб"` | Russian bingo card |
-| `bingo-generator "cat person"` | English bingo card |
+The bot responds to a single command:
 
-See `examples/` for sample outputs.
+```
+/generate <topic>
+```
+
+Sends back a 5x5 bingo card image. Language is auto-detected from the topic.
+
+### Logging
+
+Set log level in config to see debug traces:
+
+```yaml
+log_level: "DEBUG"  # "INFO", "WARNING", "ERROR"
+```
 
 ## Adding Styles
 
 Create a new file in `bingo_generator/styles/` with a `render(title, phrases, cols, rows) -> PIL.Image` function, then register it in `bingo_generator/renderer.py`.
+
+## Development
+
+```bash
+uv run pytest -v          # run tests
+uv run ruff check .       # lint
+uv run ruff format .      # format
+```

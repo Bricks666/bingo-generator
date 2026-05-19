@@ -20,3 +20,8 @@ format: "png"
 # Logging level: "DEBUG", "INFO", "WARNING", "ERROR"
 # Default: "WARNING" (only errors and warnings are shown)
 log_level: "WARNING"
+
+# Telegram bot settings (optional, only needed for bingo-bot)
+telegram:
+  # Get your token from @BotFather
+  bot_token: "YOUR_TELEGRAM_BOT_TOKEN"
