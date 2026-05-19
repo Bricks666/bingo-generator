@@ -25,11 +25,21 @@ def generate_phrases(
         lang_hint = _detect_lang_hint(topic)
 
     prompt = (
-        f"Generate exactly {count} unique, short, funny, relatable bingo phrases about '{topic}'. "
-        f"Each phrase must be different — no duplicates or near-duplicates. "
-        f"Each phrase should be 2-8 words. "
-        f"Write them in {lang_hint}. "
-        f'Return ONLY a JSON array of strings, no other text. Example: ["phrase1", "phrase2"]'
+        f"Create a bingo card for the topic '{topic}'.\n"
+        f"Generate exactly {count} cells.\n\n"
+        f"Each cell must be a short, funny, absurdly specific observation "
+        f"that people who relate to '{topic}' would recognize instantly.\n\n"
+        f"Rules:\n"
+        f"- Be hyper-specific, not generic. 'Pretended to check phone to avoid small talk' "
+        f"is good. 'Doesn't like talking' is boring.\n"
+        f"- Include absurd exaggerations, irrational behaviors, embarrassing habits.\n"
+        f"- Mix types: thoughts ('wait, was that rude?'), actions ('left party without "
+        f"saying goodbye'), physical reactions ('heart rate spikes when phone rings'), "
+        f"rationalizations ('it's not hoarding, it's a collection').\n"
+        f"- Every phrase must be unique, no duplicates or near-duplicates.\n"
+        f"- 2-8 words each.\n"
+        f"- Write in {lang_hint}.\n\n"
+        f'Return ONLY a JSON array of strings. Example: ["phrase1", "phrase2"]'
     )
 
     logger.debug(
@@ -48,13 +58,16 @@ def generate_phrases(
             {
                 "role": "system",
                 "content": (
-                    "You are a creative assistant that generates humorous "
-                    "bingo card content. Always respond with valid JSON only."
+                    "You are a witty comedy writer who specializes in observational humor. "
+                    "You write bingo cards that make people laugh and say 'that's literally me'. "
+                    "Your phrases are never generic — they are uncomfortably specific, "
+                    "absurdly relatable, and sometimes painfully accurate. "
+                    "Always respond with valid JSON only."
                 ),
             },
             {"role": "user", "content": prompt},
         ],
-        temperature=0.9,
+        temperature=1.0,
     )
 
     content = response.choices[0].message.content.strip()
