@@ -1,13 +1,17 @@
 import json
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 from bingo_generator.generator import generate_phrases
 
+MOCK_MISTRAL_PATH = "bingo_generator.generator.Mistral"
 
-@patch("bingo_generator.generator.Mistral")
-def test_generate_phrases_returns_correct_count(MockMistral):
+
+@patch(MOCK_MISTRAL_PATH)
+def test_generate_phrases_returns_correct_count(mock_mistral_cls):
     mock_client = MagicMock()
-    MockMistral.return_value = mock_client
+    mock_mistral_cls.return_value = mock_client
     phrases = ["phrase one", "phrase two", "phrase three"]
     mock_client.chat.complete.return_value = MagicMock(
         choices=[MagicMock(message=MagicMock(content=json.dumps(phrases)))]
@@ -18,25 +22,27 @@ def test_generate_phrases_returns_correct_count(MockMistral):
     assert result[0] == "phrase one"
 
 
-@patch("bingo_generator.generator.Mistral")
-def test_generate_phrases_language_hint(MockMistral):
+@patch(MOCK_MISTRAL_PATH)
+def test_generate_phrases_language_hint(mock_mistral_cls):
     mock_client = MagicMock()
-    MockMistral.return_value = mock_client
+    mock_mistral_cls.return_value = mock_client
     mock_client.chat.complete.return_value = MagicMock(
         choices=[MagicMock(message=MagicMock(content=json.dumps(["а", "б"])))]
     )
 
-    generate_phrases("социофоб", count=2, model="mistral-large-latest", lang_hint="Russian")
+    generate_phrases(
+        "социофоб", count=2, model="mistral-large-latest", lang_hint="Russian"
+    )
 
     call_args = mock_client.chat.complete.call_args
     prompt = call_args[1]["messages"][1]["content"]
     assert "Russian" in prompt
 
 
-@patch("bingo_generator.generator.Mistral")
-def test_generate_phrases_truncates_to_count(MockMistral):
+@patch(MOCK_MISTRAL_PATH)
+def test_generate_phrases_truncates_to_count(mock_mistral_cls):
     mock_client = MagicMock()
-    MockMistral.return_value = mock_client
+    mock_mistral_cls.return_value = mock_client
     phrases = ["a", "b", "c", "d", "e"]
     mock_client.chat.complete.return_value = MagicMock(
         choices=[MagicMock(message=MagicMock(content=json.dumps(phrases)))]
@@ -46,22 +52,22 @@ def test_generate_phrases_truncates_to_count(MockMistral):
     assert len(result) == 3
 
 
-@patch("bingo_generator.generator.Mistral")
-def test_generate_phrases_uses_api_key(MockMistral):
+@patch(MOCK_MISTRAL_PATH)
+def test_generate_phrases_uses_api_key(mock_mistral_cls):
     mock_client = MagicMock()
-    MockMistral.return_value = mock_client
+    mock_mistral_cls.return_value = mock_client
     mock_client.chat.complete.return_value = MagicMock(
         choices=[MagicMock(message=MagicMock(content=json.dumps(["x"])))]
     )
 
     generate_phrases("topic", count=1, model="mistral-large-latest", api_key="test-key")
-    MockMistral.assert_called_once_with(api_key="test-key")
+    mock_mistral_cls.assert_called_once_with(api_key="test-key")
 
 
-@patch("bingo_generator.generator.Mistral")
-def test_generate_phrases_auto_detects_cyrillic(MockMistral):
+@patch(MOCK_MISTRAL_PATH)
+def test_generate_phrases_auto_detects_cyrillic(mock_mistral_cls):
     mock_client = MagicMock()
-    MockMistral.return_value = mock_client
+    mock_mistral_cls.return_value = mock_client
     mock_client.chat.complete.return_value = MagicMock(
         choices=[MagicMock(message=MagicMock(content=json.dumps(["да"])))]
     )
@@ -72,10 +78,10 @@ def test_generate_phrases_auto_detects_cyrillic(MockMistral):
     assert "Russian" in prompt
 
 
-@patch("bingo_generator.generator.Mistral")
-def test_generate_phrases_raises_on_non_list(MockMistral):
+@patch(MOCK_MISTRAL_PATH)
+def test_generate_phrases_raises_on_non_list(mock_mistral_cls):
     mock_client = MagicMock()
-    MockMistral.return_value = mock_client
+    mock_mistral_cls.return_value = mock_client
     mock_client.chat.complete.return_value = MagicMock(
         choices=[MagicMock(message=MagicMock(content=json.dumps({"key": "value"})))]
     )

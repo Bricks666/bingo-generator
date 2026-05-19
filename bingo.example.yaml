@@ -16,3 +16,7 @@ language: "auto"
 
 # Output image format: "png"
 format: "png"
+
+# Logging level: "DEBUG", "INFO", "WARNING", "ERROR"
+# Default: "WARNING" (only errors and warnings are shown)
+log_level: "WARNING"

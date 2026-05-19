@@ -1,4 +1,8 @@
+import logging
+
 from PIL import Image, ImageDraw, ImageFont
+
+logger = logging.getLogger(__name__)
 
 FONT_BOLD = "/usr/share/fonts/open-sans/OpenSans-Bold.ttf"
 FONT_REGULAR = "/usr/share/fonts/open-sans/OpenSans-Regular.ttf"
@@ -13,6 +17,7 @@ def _load_font(path: str, size: int) -> ImageFont.FreeTypeFont | ImageFont.Image
     try:
         return ImageFont.truetype(path, size)
     except OSError:
+        logger.warning("Font not found at '%s', falling back to default", path)
         return ImageFont.load_default()
 
 
@@ -32,6 +37,9 @@ def _wrap_text(text: str, font, max_width: int, draw: ImageDraw.Draw) -> list[st
 
 
 def render(title: str, phrases: list[str], cols: int, rows: int) -> Image.Image:
+    logger.debug(
+        "Minimal render: '%s' %dx%d, %d phrases", title, cols, rows, len(phrases)
+    )
     cell_size = 180
     title_font = _load_font(FONT_BOLD, 28)
     cell_font = _load_font(FONT_REGULAR, 14)

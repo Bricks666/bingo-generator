@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import re
 import sys
@@ -6,6 +7,15 @@ import sys
 from bingo_generator.config import load_config
 from bingo_generator.generator import generate_phrases
 from bingo_generator.renderer import render_bingo
+
+logger = logging.getLogger(__name__)
+
+
+def _setup_logging(level: str) -> None:
+    logging.basicConfig(
+        level=getattr(logging, level.upper(), logging.WARNING),
+        format="%(levelname)s %(name)s: %(message)s",
+    )
 
 
 def parse_size(value: str) -> tuple[int, int]:
@@ -40,11 +50,17 @@ def main():
     args = parser.parse_args()
 
     config = load_config()
+    _setup_logging(config.get("log_level", "WARNING"))
+
+    logger.debug(
+        "CLI args: topic='%s', size=%s, style='%s'", args.topic, args.size, args.style
+    )
 
     api_key = config["mistral"].get("api_key", "") or os.environ.get(
         "MISTRAL_API_KEY", ""
     )
     if not api_key:
+        logger.warning("No Mistral API key configured")
         print(
             "Error: No Mistral API key found. Set it in bingo.yaml or MISTRAL_API_KEY env var.",
             file=sys.stderr,
@@ -66,6 +82,10 @@ def main():
     title = args.topic.upper()
     img = render_bingo(title, phrases, cols, rows, style=args.style)
 
-    output = args.output or f"bingo_{args.topic.replace(' ', '_')}.{config.get('format', 'png')}"
+    output = (
+        args.output
+        or f"bingo_{args.topic.replace(' ', '_')}.{config.get('format', 'png')}"
+    )
     img.save(output)
+    logger.debug("Image saved to '%s'", output)
     print(f"Saved to {output}")

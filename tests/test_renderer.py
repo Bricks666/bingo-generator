@@ -1,4 +1,5 @@
 from PIL import Image
+
 from bingo_generator.renderer import render_bingo
 
 
@@ -16,9 +17,8 @@ def test_render_bingo_5x5():
 
 
 def test_render_bingo_invalid_style():
+    import pytest
+
     phrases = [f"p{i}" for i in range(4)]
-    try:
+    with pytest.raises(ValueError):
         render_bingo("Test", phrases, cols=2, rows=2, style="nonexistent")
-        assert False, "Should have raised"
-    except ValueError:
-        pass

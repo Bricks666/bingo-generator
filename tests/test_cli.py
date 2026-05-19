@@ -1,5 +1,7 @@
 import argparse
+
 import pytest
+
 from bingo_generator.cli import parse_size
 
 

@@ -1,6 +1,6 @@
-import pytest
 from pathlib import Path
-from bingo_generator.config import load_config, DEFAULT_CONFIG
+
+from bingo_generator.config import DEFAULT_CONFIG, load_config
 
 
 def test_default_config_values():
